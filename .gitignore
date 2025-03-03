@@ -1,0 +1,49 @@
+# .NET Build Artifacts
+bin/
+obj/
+
+# User-specific Files
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Logs and Debugging
+logs/
+*.log
+*.tlog
+*.pdb
+
+# OS-specific Files
+.DS_Store
+Thumbs.db
+
+# Configurations (Secrets, User Settings)
+appsettings.Development.json
+appsettings.Local.json
+secrets.json
+
+# Packages & Dependencies
+node_modules/
+packages/
+.nuget/
+
+# Entity Framework Migrations
+Migrations/
+
+# Rider and JetBrains IDEs
+.idea/
+*.iml
+
+# Visual Studio Code Settings
+.vscode/
+
+# ASP.NET Temporary Files
+.AspNet/
+
+# Docker
+docker-compose.override.yml
+**/Dockerfile
+
+.env
