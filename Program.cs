@@ -1,11 +1,14 @@
 using System.Text;
+using authorization_project.Authorization;
 using authorization_project.DB;
 using authorization_project.Services;
 using authorization_project.Services.implementation;
+using authorization_project.utils;
 using authorization_project.utils.Error;
 using authorization_project.utils.Response;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,31 +42,6 @@ builder.Services.AddAuthentication(
         };
         x.Events = new JwtBearerEvents
         {
-            OnMessageReceived = context =>
-            {
-                var token = context.Request.Headers["Authorization"].FirstOrDefault();
-
-                if (string.IsNullOrWhiteSpace(token) || !token.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-                {
-                    var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<JwtBearerHandler>>();
-
-                    logger.LogWarning("No token provided in the Authorization header.");
-
-                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    context.Response.ContentType = "application/json";
-
-                    var response = new ApiErrorResponse
-                    {
-                        Success = false,
-                        StatusCode = StatusCodes.Status401Unauthorized,
-                        Message = "Invalid or expired token. Please login again."
-                    };
-
-                    return context.Response.WriteAsJsonAsync(response);
-                }
-
-                return Task.CompletedTask;
-            },
             OnAuthenticationFailed = context =>
             {
                 var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<JwtBearerHandler>>();
@@ -86,9 +64,29 @@ builder.Services.AddAuthentication(
     }
 );
 
+builder.Services.AddAuthorization(options =>
+{
+    var resources = Enum.GetValues(typeof(ResourceEnum)).Cast<ResourceEnum>();
+    var permissions = Enum.GetValues(typeof(PermissionOperationEnum)).Cast<PermissionOperationEnum>();
+
+    foreach (var resource in resources)
+    {
+        foreach (var permission in permissions)
+        {
+            string policyName = $"{resource.ToString()}:{permission.ToString()}";
+            
+            options.AddPolicy(policyName, policy =>
+            {
+                policy.Requirements.Add(new PermissionRequirement(resource, permission));
+            });
+        }
+    }
+});
 
 builder.Services.AddScoped<IDatabase, Database>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+builder.Services.AddScoped<IPermissionService, PermissionService>();
+builder.Services.AddScoped<IAuthorizationHandler, PermissionHandler>();
 
 Env.Load();
 
@@ -105,6 +103,7 @@ app.UseMiddleware<ErrorHandlerMiddleware>();
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

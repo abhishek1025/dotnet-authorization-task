@@ -4,9 +4,7 @@ using authorization_project.Services;
 using authorization_project.utils.Error;
 using authorization_project.utils.Response;
 using Dapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using Npgsql;
 using static BCrypt.Net.BCrypt;
 
@@ -85,18 +83,6 @@ namespace authorization_project.Controllers
             {
                 Token = token
             }, message:"Authentication Successfull");
-        }
-
-        [Authorize]
-        [HttpGet("test-auth")]
-        public IActionResult TestAuth()
-        {
-            string userId = _jwtTokenService.GetUserIdFromToken();
-            
-            return Ok(new
-            {
-                UserId = userId
-            });
         }
     }
 }

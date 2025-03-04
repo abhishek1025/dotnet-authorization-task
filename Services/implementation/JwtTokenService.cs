@@ -36,6 +36,14 @@ public class JwtTokenService: IJwtTokenService
     
     public string GetUserIdFromToken()
     {
+        var httpContext = _httpContextAccessor.HttpContext;
+        
+        if (httpContext == null)
+        {
+            System.Diagnostics.Debug.WriteLine("HttpContext is null in JwtTokenService");
+            return null;  // Avoid NullReferenceException
+        }
+        
         var sidClaim = _httpContextAccessor.HttpContext.User.Claims.FirstOrDefault(c 
             => c.Type == JwtRegisteredClaimNames.Sid);
 
